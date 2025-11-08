@@ -18,6 +18,17 @@ import TextareaComponent from "@/components/Form/TextareaComponent";
 import { Link } from "react-router-dom";
 import { Centres, Gender, Schools } from "@/constants/constants";
 import Result from "./Result";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -27,6 +38,7 @@ const StudentProfile = () => {
   const [sponsors, setSponsors] = useState([]);
   const [studentDataChanged, setStudentDataChanged] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isDealloting, setIsDealloting] = useState(false);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -140,6 +152,7 @@ const StudentProfile = () => {
   };
 
   const handleDeAllotment = async (sponsorId) => {
+    setIsDealloting(true);
     try {
       const res = await fetch(`/api/allotment/deallot`, {
         method: "PATCH",
@@ -162,6 +175,8 @@ const StudentProfile = () => {
         (sponsor) => sponsor._id !== sponsorId
       );
       setStudentData(updatedStudentData);
+      // Refresh sponsors data to reflect changes
+      setSponsors(updatedStudentData.sponsors);
     } catch (e) {
       toast.error(`Error dealloting sponsor: ${e.message}`);
       return;
@@ -597,6 +612,41 @@ const StudentProfile = () => {
                           </p>
                         )}
                       </div>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={isDealloting}
+                          >
+                            Deallot
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Confirm Deallotment
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to deallot{" "}
+                              <span className="font-semibold">
+                                {sponsor.name}
+                              </span>
+                              ? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeAllotment(sponsor._id)}
+                              className="bg-destructive text-white hover:bg-destructive/90"
+                            >
+                              Confirm
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   ))}
                 </div>
